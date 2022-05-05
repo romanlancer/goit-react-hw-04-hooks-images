@@ -1,11 +1,12 @@
 import { fetchPictures } from './PixabayApi';
 import { Component } from 'react';
+import PropTypes from 'prop-types';
 import ImageGallery from '../components/ImageGallery';
-import Loader from '../components/Loader';
 import Button from '../components/Button';
+import Modal from '../components/Modal';
 import { Notify } from 'notiflix';
+import { Loading } from 'notiflix/build/notiflix-loading-aio';
 
-import Searchbar from '../components/Searchbar';
 const Status = {
   IDLE: 'idle',
   PENDING: 'pending',
@@ -19,38 +20,14 @@ export default class SearchInfo extends Component {
   };
   state = {
     pictures: [],
-    error: null,
+    largeImage: '',
+    tags: '',
+    showModal: false,
     status: Status.IDLE,
     page: this.props.initialPage,
   };
 
-  incrementPage = () => {
-    this.setState(
-      prevState => ({
-        page: (prevState.page += 1),
-      }),
-      () => {
-        const nextQuery = this.props.query;
-
-        this.setState({ status: Status.PENDING });
-        const page = this.state.page;
-        console.log(page);
-        fetchPictures(nextQuery, page).then(data => {
-          console.log(data);
-          this.setState({
-            pictures: [...this.state.pictures, ...data.hits],
-            status: Status.RESOLVED,
-          });
-        });
-      }
-    );
-  };
-
-  resetPage = () => {
-    this.setState({ page: 1 });
-  };
-
-  componentDidUpdate(prevProps) {
+  componentDidUpdate = prevProps => {
     const prevQuery = prevProps.query;
     const nextQuery = this.props.query;
     const page = this.state.page;
@@ -72,18 +49,67 @@ export default class SearchInfo extends Component {
         });
       });
     }
-  }
+  };
+
+  incrementPage = () => {
+    this.setState(
+      prevState => ({
+        page: (prevState.page += 1),
+      }),
+      () => {
+        const nextQuery = this.props.query;
+        this.setState({ status: Status.PENDING });
+        const page = this.state.page;
+
+        fetchPictures(nextQuery, page)
+          .then(pictures => {
+            if (pictures.hits.length === 0 && pictures.totalHits !== 0) {
+              Notify.info(
+                "We're sorry, but you've reached the end of search results."
+              );
+            }
+            this.setState({
+              pictures: [...this.state.pictures, ...pictures.hits],
+              status: Status.RESOLVED,
+            });
+          })
+          .catch(error => {
+            Notify.info(
+              "We're sorry, but you've reached the end of search results."
+            );
+          });
+      }
+    );
+  };
+
+  toggleModal = () => {
+    this.setState(({ showModal }) => ({
+      showModal: !showModal,
+    }));
+  };
+
+  setInfoForModal = (url, tags) => {
+    this.setState({ largeImage: url, tags: tags });
+    this.toggleModal();
+  };
+
+  resetPage = () => {
+    this.setState({ page: 1 });
+  };
 
   render() {
-    const { pictures, status } = this.state;
-
-    const { query } = this.props;
-
+    const { pictures, status, showModal, largeImage, tags } = this.state;
+    console.log(status);
     if (status === 'pending') {
       return (
         <>
-          <Loader query={query} />;
-          <ImageGallery pictures={pictures} />
+          {Loading.pulse({
+            svgSize: '150px',
+          })}
+          <ImageGallery
+            pictures={pictures}
+            setInfoForModal={this.setInfoForModal}
+          />
         </>
       );
     }
@@ -91,7 +117,18 @@ export default class SearchInfo extends Component {
     if (status === 'resolved') {
       return (
         <>
-          <ImageGallery pictures={pictures} />
+          {Loading.remove()}
+          <ImageGallery
+            pictures={pictures}
+            setInfoForModal={this.setInfoForModal}
+          />
+          {showModal && (
+            <Modal
+              onClose={this.toggleModal}
+              largeImage={largeImage}
+              tags={tags}
+            />
+          )}
           {pictures.length !== 0 && (
             <Button incrementPage={this.incrementPage} />
           )}
@@ -100,3 +137,7 @@ export default class SearchInfo extends Component {
     }
   }
 }
+
+SearchInfo.propTypes = {
+  query: PropTypes.string,
+};
