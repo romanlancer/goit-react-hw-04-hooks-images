@@ -30,22 +30,23 @@ export default class SearchInfo extends Component {
   componentDidUpdate = prevProps => {
     const prevQuery = prevProps.query;
     const nextQuery = this.props.query;
-    const page = this.state.page;
 
     if (prevQuery !== nextQuery) {
-      this.setState({ status: Status.PENDING });
-      this.resetPage();
-      fetchPictures(nextQuery, page).then(pictures => {
-        if (pictures.totalHits !== 0 && pictures.hits.length !== 0) {
-          Notify.success(`Hooray! We found ${pictures.totalHits} images.`);
-        } else {
-          Notify.failure(
-            'Sorry, there are no images matching your search query. Please try again.'
-          );
-        }
-        this.setState({
-          pictures: [...pictures.hits],
-          status: Status.RESOLVED,
+      this.setState({ status: Status.PENDING, page: 1 }, () => {
+        const page = this.state.page;
+
+        fetchPictures(nextQuery, page).then(pictures => {
+          if (pictures.totalHits !== 0 && pictures.hits.length !== 0) {
+            Notify.success(`Hooray! We found ${pictures.totalHits} images.`);
+          } else {
+            Notify.failure(
+              'Sorry, there are no images matching your search query. Please try again.'
+            );
+          }
+          this.setState({
+            pictures: [...pictures.hits],
+            status: Status.RESOLVED,
+          });
         });
       });
     }
@@ -57,8 +58,9 @@ export default class SearchInfo extends Component {
         page: (prevState.page += 1),
       }),
       () => {
-        const nextQuery = this.props.query;
         this.setState({ status: Status.PENDING });
+        const nextQuery = this.props.query;
+
         const page = this.state.page;
 
         fetchPictures(nextQuery, page)
@@ -68,10 +70,10 @@ export default class SearchInfo extends Component {
                 "We're sorry, but you've reached the end of search results."
               );
             }
-            this.setState({
-              pictures: [...this.state.pictures, ...pictures.hits],
+            this.setState(prevState => ({
+              pictures: [...prevState.pictures, ...pictures.hits],
               status: Status.RESOLVED,
-            });
+            }));
           })
           .catch(error => {
             Notify.info(
@@ -93,13 +95,9 @@ export default class SearchInfo extends Component {
     this.toggleModal();
   };
 
-  resetPage = () => {
-    this.setState({ page: 1 });
-  };
-
   render() {
     const { pictures, status, showModal, largeImage, tags } = this.state;
-    console.log(status);
+
     if (status === 'pending') {
       return (
         <>
@@ -110,6 +108,9 @@ export default class SearchInfo extends Component {
             pictures={pictures}
             setInfoForModal={this.setInfoForModal}
           />
+          {pictures.length !== 0 && (
+            <Button incrementPage={this.incrementPage} />
+          )}
         </>
       );
     }

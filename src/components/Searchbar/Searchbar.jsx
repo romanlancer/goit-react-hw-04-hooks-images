@@ -21,7 +21,7 @@ export default class Searchbar extends Component {
       return;
     }
 
-    this.props.onSubmit(this.state.query);
+    this.props.onSubmit(this.state.query.trim());
     this.setState({ query: '' });
   };
 
