@@ -5,7 +5,7 @@ import { Backdrop, ModalWindow, ModalImage, Description } from './Modal.styled';
 
 const modalRoot = document.querySelector('#modal-root');
 
-export default class Modal extends Component {
+class Modal extends Component {
   componentDidMount() {
     window.addEventListener('keydown', this.handleEscClose);
   }
@@ -42,7 +42,9 @@ export default class Modal extends Component {
 }
 
 Modal.propTypes = {
-  largeImage: PropTypes.string,
-  tags: PropTypes.string,
-  onClose: PropTypes.func,
+  largeImage: PropTypes.string.isRequired,
+  tags: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
+
+export default Modal;

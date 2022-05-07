@@ -9,5 +9,5 @@ const ButtonLoadMore = ({ incrementPage }) => (
 export default ButtonLoadMore;
 
 ButtonLoadMore.propTypes = {
-  incrementPage: PropTypes.func,
+  incrementPage: PropTypes.func.isRequired,
 };

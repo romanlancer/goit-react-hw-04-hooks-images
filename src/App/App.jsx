@@ -1,5 +1,4 @@
 import { Component } from 'react';
-import styled from 'styled-components';
 import Searchbar from '../components/Searchbar';
 import SearchInfo from '../Services/SearchInfo';
 import ScrollOnTop from '../components/ScrollToTop';

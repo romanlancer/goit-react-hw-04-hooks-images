@@ -140,5 +140,5 @@ export default class SearchInfo extends Component {
 }
 
 SearchInfo.propTypes = {
-  query: PropTypes.string,
+  query: PropTypes.string.isRequired,
 };

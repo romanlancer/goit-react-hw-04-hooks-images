@@ -22,7 +22,7 @@ const ImageGalleryItem = ({
   downloads,
   largeImageURL,
 }) => {
-  const handleClick = e => {
+  const handleClick = () => {
     Loading.pulse({
       svgSize: '150px',
     });
@@ -30,7 +30,7 @@ const ImageGalleryItem = ({
     Loading.remove();
   };
   return (
-    <ImageItem key={id} onClick={e => handleClick(e)}>
+    <ImageItem key={id} onClick={handleClick}>
       <div>
         <ImageWrapper>
           <Image src={webformatURL} alt={tags} loading="lazy" />
@@ -68,15 +68,15 @@ const ImageGalleryItem = ({
 };
 
 ImageGalleryItem.propTypes = {
-  largeImageURL: PropTypes.string,
-  id: PropTypes.number,
-  webformatURL: PropTypes.string,
-  tags: PropTypes.string,
-  setInfoForModal: PropTypes.func,
-  likes: PropTypes.number,
-  views: PropTypes.number,
-  comments: PropTypes.number,
-  downloads: PropTypes.number,
+  largeImageURL: PropTypes.string.isRequired,
+  id: PropTypes.number.isRequired,
+  webformatURL: PropTypes.string.isRequired,
+  tags: PropTypes.string.isRequired,
+  setInfoForModal: PropTypes.func.isRequired,
+  likes: PropTypes.number.isRequired,
+  views: PropTypes.number.isRequired,
+  comments: PropTypes.number.isRequired,
+  downloads: PropTypes.number.isRequired,
 };
 
 export default ImageGalleryItem;

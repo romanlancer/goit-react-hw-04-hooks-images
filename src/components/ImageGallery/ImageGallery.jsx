@@ -38,15 +38,15 @@ export default ImageGallery;
 ImageGallery.propTypes = {
   pictures: PropTypes.arrayOf(
     PropTypes.shape({
-      largeImageURL: PropTypes.string,
-      id: PropTypes.number,
-      webformatURL: PropTypes.string,
-      tags: PropTypes.string,
-      likes: PropTypes.number,
-      views: PropTypes.number,
-      comments: PropTypes.number,
-      downloads: PropTypes.number,
+      largeImageURL: PropTypes.string.isRequired,
+      id: PropTypes.number.isRequired,
+      webformatURL: PropTypes.string.isRequired,
+      tags: PropTypes.string.isRequired,
+      likes: PropTypes.number.isRequired,
+      views: PropTypes.number.isRequired,
+      comments: PropTypes.number.isRequired,
+      downloads: PropTypes.number.isRequired,
     })
-  ),
-  setInfoForModal: PropTypes.func,
+  ).isRequired,
+  setInfoForModal: PropTypes.func.isRequired,
 };
