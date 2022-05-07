@@ -75,7 +75,7 @@ export default class SearchInfo extends Component {
               status: Status.RESOLVED,
             }));
           })
-          .catch(error => {
+          .catch(() => {
             Notify.info(
               "We're sorry, but you've reached the end of search results."
             );
