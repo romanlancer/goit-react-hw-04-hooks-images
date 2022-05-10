@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { fetchPictures } from './PixabayApi';
-import { Component } from 'react';
-import PropTypes from 'prop-types';
+
+import Searchbar from '../components/Searchbar';
 import ImageGallery from '../components/ImageGallery';
 import Button from '../components/Button';
 import Modal from '../components/Modal';
@@ -14,131 +15,104 @@ const Status = {
   REJECTED: 'rejected',
 };
 
-export default class SearchInfo extends Component {
-  static defaultProps = {
-    initialPage: 1,
-  };
-  state = {
-    pictures: [],
-    largeImage: '',
-    tags: '',
-    showModal: false,
-    status: Status.IDLE,
-    page: this.props.initialPage,
-  };
+const SearchInfo = () => {
+  const [pictures, setPictures] = useState([]);
+  const [largeImage, setLargeImage] = useState('');
+  const [tags, setTags] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [status, setStatus] = useState(Status.IDLE);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
 
-  componentDidUpdate = prevProps => {
-    const prevQuery = prevProps.query;
-    const nextQuery = this.props.query;
+  useEffect(() => {
+    if (query) {
+      setStatus(Status.PENDING);
+      fetchPictures(query, page)
+        .then(pictures => {
+          if (pictures.hits.length === 0 && pictures.totalHits !== 0) {
+            Notify.info(
+              "We're sorry, but you've reached the end of search results."
+            );
+          }
 
-    if (prevQuery !== nextQuery) {
-      this.setState({ status: Status.PENDING, page: 1 }, () => {
-        const page = this.state.page;
-
-        fetchPictures(nextQuery, page).then(pictures => {
-          if (pictures.totalHits !== 0 && pictures.hits.length !== 0) {
+          if (
+            page === 1 &&
+            pictures.totalHits !== 0 &&
+            pictures.hits.length !== 0
+          ) {
             Notify.success(`Hooray! We found ${pictures.totalHits} images.`);
-          } else {
+          } else if (pictures.totalHits === 0 && pictures.hits.length === 0) {
             Notify.failure(
               'Sorry, there are no images matching your search query. Please try again.'
             );
           }
-          this.setState({
-            pictures: [...pictures.hits],
-            status: Status.RESOLVED,
-          });
+
+          setPictures(state => [...state, ...pictures.hits]);
+          setStatus(Status.RESOLVED);
+        })
+        .catch(() => {
+          Notify.info(
+            "We're sorry, but you've reached the end of search results."
+          );
         });
-      });
     }
+  }, [query, page]);
+
+  const incrementPage = () => {
+    setPage(state => state + 1);
   };
 
-  incrementPage = () => {
-    this.setState(
-      prevState => ({
-        page: (prevState.page += 1),
-      }),
-      () => {
-        this.setState({ status: Status.PENDING });
-        const nextQuery = this.props.query;
-
-        const page = this.state.page;
-
-        fetchPictures(nextQuery, page)
-          .then(pictures => {
-            if (pictures.hits.length === 0 && pictures.totalHits !== 0) {
-              Notify.info(
-                "We're sorry, but you've reached the end of search results."
-              );
-            }
-            this.setState(prevState => ({
-              pictures: [...prevState.pictures, ...pictures.hits],
-              status: Status.RESOLVED,
-            }));
-          })
-          .catch(() => {
-            Notify.info(
-              "We're sorry, but you've reached the end of search results."
-            );
-          });
-      }
-    );
+  const handleFormSubmit = query => {
+    setPage(1);
+    setPictures([]);
+    setQuery(query);
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  setInfoForModal = (url, tags) => {
-    this.setState({ largeImage: url, tags: tags });
-    this.toggleModal();
+  const setInfoForModal = (url, tags) => {
+    setLargeImage(url);
+    setTags(tags);
+
+    toggleModal();
   };
 
-  render() {
-    const { pictures, status, showModal, largeImage, tags } = this.state;
-
-    if (status === 'pending') {
-      return (
-        <>
-          {Loading.pulse({
-            svgSize: '150px',
-          })}
-          <ImageGallery
-            pictures={pictures}
-            setInfoForModal={this.setInfoForModal}
-          />
-          {pictures.length !== 0 && (
-            <Button incrementPage={this.incrementPage} />
-          )}
-        </>
-      );
-    }
-
-    if (status === 'resolved') {
-      return (
-        <>
-          {Loading.remove()}
-          <ImageGallery
-            pictures={pictures}
-            setInfoForModal={this.setInfoForModal}
-          />
-          {showModal && (
-            <Modal
-              onClose={this.toggleModal}
-              largeImage={largeImage}
-              tags={tags}
-            />
-          )}
-          {pictures.length !== 0 && (
-            <Button incrementPage={this.incrementPage} />
-          )}
-        </>
-      );
-    }
+  if (status === Status.IDLE) {
+    return <Searchbar onSubmit={handleFormSubmit} />;
   }
-}
 
-SearchInfo.propTypes = {
-  query: PropTypes.string.isRequired,
+  if (status === Status.PENDING) {
+    return (
+      <>
+        {Loading.pulse({
+          svgSize: '150px',
+        })}
+        <Searchbar onSubmit={handleFormSubmit} />;
+        <main>
+          <ImageGallery pictures={pictures} setInfoForModal={setInfoForModal} />
+          {pictures.length !== 0 && <Button incrementPage={incrementPage} />}
+        </main>
+      </>
+    );
+  }
+
+  if (status === Status.RESOLVED) {
+    return (
+      <>
+        {Loading.remove()}
+        <Searchbar onSubmit={handleFormSubmit} />;
+        <main>
+          <ImageGallery pictures={pictures} setInfoForModal={setInfoForModal} />
+          {showModal && (
+            <Modal onClose={toggleModal} largeImage={largeImage} tags={tags} />
+          )}
+          {pictures.length !== 0 && <Button incrementPage={incrementPage} />}
+        </main>
+      </>
+    );
+  }
 };
+
+export default SearchInfo;

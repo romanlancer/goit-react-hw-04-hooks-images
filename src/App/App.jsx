@@ -1,28 +1,16 @@
-import { Component } from 'react';
-import Searchbar from '../components/Searchbar';
 import SearchInfo from '../Services/SearchInfo';
-import ScrollOnTop from '../components/ScrollToTop';
-class App extends Component {
-  state = {
-    query: '',
-  };
-  handleFormSubmit = query => {
-    this.setState({ query });
-  };
-
-  render() {
-    const { query } = this.state;
-    return (
-      <>
-        <header>
-          <Searchbar onSubmit={this.handleFormSubmit} />
-        </header>
-        <main>
-          <SearchInfo query={query} />
-          <ScrollOnTop />
-        </main>
-      </>
-    );
-  }
-}
+import { ScrollToTop } from 'react-to-top';
+const App = () => {
+  return (
+    <>
+      <SearchInfo />
+      <ScrollToTop
+        bgColor="#32a8a4"
+        size={60}
+        strokeWidth={2}
+        symbolSize={25}
+      />
+    </>
+  );
+};
 export default App;

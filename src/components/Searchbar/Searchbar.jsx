@@ -1,41 +1,39 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Wrapper, Form, Input, Button } from './Searchbar.styled';
 import { Notify } from 'notiflix';
 import { BsSearch } from 'react-icons/bs';
 
-export default class Searchbar extends Component {
-  state = {
-    query: '',
+const Searchbar = ({ onSubmit }) => {
+  const [query, setQuery] = useState('');
+
+  const handleQueryChange = e => {
+    setQuery(e.currentTarget.value.toLowerCase());
   };
 
-  handleQueryChange = event => {
-    this.setState({ query: event.currentTarget.value.toLowerCase() });
-  };
+  const handleSubmit = e => {
+    e.preventDefault();
 
-  handleSubmit = event => {
-    event.preventDefault();
-
-    if (this.state.query.trim() === '') {
+    if (query.trim() === '') {
       Notify.failure('please enter any query');
       return;
     }
 
-    this.props.onSubmit(this.state.query.trim());
-    this.setState({ query: '' });
+    onSubmit(query.trim());
+    setQuery('');
   };
 
-  render() {
-    return (
+  return (
+    <header>
       <Wrapper>
-        <Form onSubmit={this.handleSubmit} id="search-form">
+        <Form onSubmit={handleSubmit} id="search-form">
           <Input
             type="text"
             name="searchQuery"
             autoComplete="off"
             placeholder="Search images..."
-            value={this.state.query}
-            onChange={this.handleQueryChange}
+            value={query}
+            onChange={handleQueryChange}
           />
 
           <Button type="submit">
@@ -43,10 +41,12 @@ export default class Searchbar extends Component {
           </Button>
         </Form>
       </Wrapper>
-    );
-  }
-}
+    </header>
+  );
+};
 
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
 };
+
+export default Searchbar;
