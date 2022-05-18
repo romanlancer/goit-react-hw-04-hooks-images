@@ -54,6 +54,11 @@ const SearchInfo = () => {
           Notify.info(
             "We're sorry, but you've reached the end of search results."
           );
+        })
+        .finally(() => {
+          if (page > 1) {
+            setTimeout(smoothScroll, 250);
+          }
         });
     }
   }, [query, page]);
@@ -70,6 +75,15 @@ const SearchInfo = () => {
 
   const toggleModal = () => {
     setShowModal(!showModal);
+  };
+
+  const smoothScroll = () => {
+    let scrollHeight = document.documentElement.scrollHeight;
+
+    window.scrollTo({
+      top: scrollHeight,
+      behavior: 'smooth',
+    });
   };
 
   const setInfoForModal = (url, tags) => {
